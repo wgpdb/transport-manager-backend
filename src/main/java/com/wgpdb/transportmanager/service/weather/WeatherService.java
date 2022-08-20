@@ -1,9 +1,11 @@
 package com.wgpdb.transportmanager.service.weather;
 
 import com.wgpdb.transportmanager.domain.WeatherData;
+import com.wgpdb.transportmanager.exception.WeatherDataCouldNotBeRetrievedException;
 import com.wgpdb.transportmanager.service.weather.openweather.OpenWeatherApiResponse;
 import com.wgpdb.transportmanager.service.weather.openweather.ResponseList;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -15,7 +17,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class WeatherService {
@@ -23,21 +27,28 @@ public class WeatherService {
     private final WeatherServiceConfig weatherServiceConfig;
     private final WebClient webClient = WebClient.create();
 
-    public OpenWeatherApiResponse getWeatherApiCall(String city) {
-        URI url = UriComponentsBuilder.fromHttpUrl(weatherServiceConfig.getOpenWeatherApiUrl())
+    private URI url(String city) {
+        return UriComponentsBuilder.fromHttpUrl(weatherServiceConfig.getOpenWeatherApiUrl())
                 .queryParam("q", city)
                 .queryParam("units", "metric")
                 .queryParam("appid", weatherServiceConfig.getOpenWeatherApiKey())
                 .build()
                 .encode()
                 .toUri();
+    }
 
-        return Objects.requireNonNull(webClient
-                .get()
-                .uri(url))
-                .retrieve()
-                .bodyToMono(OpenWeatherApiResponse.class)
-                .block();
+    private Optional<OpenWeatherApiResponse> getWeatherApiCall(String city) {
+        try {
+            return Optional.ofNullable(Objects.requireNonNull(webClient
+                            .get()
+                            .uri(url(city)))
+                    .retrieve()
+                    .bodyToMono(OpenWeatherApiResponse.class)
+                    .block());
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return Optional.empty();
+        }
     }
 
     public LocalDateTime convertFromString(String dateTime) {
@@ -45,8 +56,12 @@ public class WeatherService {
         return LocalDateTime.parse(dateTime, formatter);
     }
 
-    public List<WeatherData> getWeatherForecastByDayList(LocalDate date, String city) {
-        OpenWeatherApiResponse response = getWeatherApiCall(city);
+    public List<WeatherData> getWeatherForecastByDayList(LocalDate date, String city)
+            throws WeatherDataCouldNotBeRetrievedException {
+
+        OpenWeatherApiResponse response = getWeatherApiCall(city)
+                .orElseThrow(WeatherDataCouldNotBeRetrievedException::new);
+
         List<ResponseList> responseList = response.getResponseList();
 
         List<WeatherData> weatherDataList = new ArrayList<>();
