@@ -6,6 +6,7 @@ services:
     image: mysql:latest
     environment:
       MYSQL_DATABASE: transport_manager
-      MYSQL_ROOT_PASSWORD: TransportManagerUser123
+      MYSQL_ROOT_PASSWORD: ${TM_MYSQL_PASSWORD}
+      #TransportManagerUser123
     ports:
       - 3306:3306

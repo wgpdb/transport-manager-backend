@@ -19,8 +19,6 @@ public class ExchangeRateService {
     private final ExchangeRateServiceConfig exchangeRateServiceConfig;
     private final WebClient webClient = WebClient.create();
 
-    //todo: holiday handling on dateValidator method
-
     public LocalDate dateValidator(LocalDate date) {
         LocalDate validDate = null;
         if (date.getDayOfWeek().equals(DayOfWeek.SATURDAY)) {
@@ -35,30 +33,43 @@ public class ExchangeRateService {
         return validDate;
     }
 
-    public Rate getRate(Currency currency, LocalDate eventDate) {
-        LocalDate rateDate = dateValidator(eventDate);
-
-        URI url = UriComponentsBuilder.fromHttpUrl(exchangeRateServiceConfig.getNbpApiUrl())
+    private URI requestUri(Currency currency, LocalDate rateDate) {
+        return UriComponentsBuilder.fromHttpUrl(exchangeRateServiceConfig.getNbpApiUrl())
                 .pathSegment(currency.getLabel())
                 .pathSegment(rateDate.toString())
                 .build()
                 .encode()
                 .toUri();
+    }
 
-        try {
-            return webClient
-                    .get()
-                    .uri(url)
-                    .retrieve()
-                    .bodyToMono(NbpApiResponse.class)
-                    .block()
-                    .getRates()
-                    .stream()
-                    .findFirst()
-                    .get();
-        } catch (Exception e) {
-            log.error(e.getMessage());
-            return null;
+    public Rate retrieveRate(Currency currency, LocalDate eventDate) {
+        Rate rate;
+        LocalDate rateDate = dateValidator(eventDate);
+
+        while(true) {
+            URI url = requestUri(currency, rateDate);
+
+            try {
+                rate = webClient
+                        .get()
+                        .uri(url)
+                        .retrieve()
+                        .bodyToMono(NbpApiResponse.class)
+                        .block()
+                        .getRates()
+                        .stream()
+                        .findFirst()
+                        .get();
+            } catch (Exception e) {
+                log.error(e.getMessage());
+                rate = null;
+            }
+
+            if (rate != null) {
+                return rate;
+            } else {
+                rateDate = dateValidator(rateDate);
+            }
         }
     }
 }
