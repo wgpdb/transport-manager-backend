@@ -4,7 +4,6 @@ import com.wgpdb.transportmanager.domain.ExpenseItem;
 import com.wgpdb.transportmanager.exception.ExpenseItemNotFoundException;
 import com.wgpdb.transportmanager.repository.ExpenseItemRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,7 +12,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ExpenseItemDbService {
 
-    @Autowired
     private final ExpenseItemRepository expenseItemRepository;
 
     public ExpenseItem getExpenseItem(final Long id) throws ExpenseItemNotFoundException {

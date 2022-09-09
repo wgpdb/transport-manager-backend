@@ -5,9 +5,11 @@ import com.wgpdb.transportmanager.domain.enumerantion.TripStatus;
 import com.wgpdb.transportmanager.domain.dto.TripDto;
 import com.wgpdb.transportmanager.exception.TripNotFoundException;
 import com.wgpdb.transportmanager.mapper.TripMapper;
+import com.wgpdb.transportmanager.mapper.TripPageMapper;
 import com.wgpdb.transportmanager.service.dbservice.TripDbService;
 import com.wgpdb.transportmanager.service.triprevenue.TripRevenueCalcService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +26,7 @@ public class TripController {
 
     private final TripDbService tripDbService;
     private final TripMapper tripMapper;
+    private final TripPageMapper tripPageMapper;
     private final TripRevenueCalcService tripRevenueCalcService;
 
     @GetMapping(value = "{id}")
@@ -35,6 +38,16 @@ public class TripController {
     public ResponseEntity<List<TripDto>> getAllTrips() {
         List<Trip> trips = tripDbService.getAllTrips();
         return ResponseEntity.ok(tripMapper.INSTANCE.mapToTripDtoList(trips));
+    }
+
+    @GetMapping(value = "/p")
+    public ResponseEntity<Page<TripDto>> getAllTripsPagedSorted(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "tripDate") String sortBy) {
+        Page<Trip> trips = tripDbService.getAllTripsPagedSorted(page, size, sortBy);
+        Page<TripDto> tripsDto = tripPageMapper.mapToTripDtoPage(trips);
+        return ResponseEntity.ok(tripsDto);
     }
 
     @GetMapping(value = "/status")

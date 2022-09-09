@@ -4,7 +4,6 @@ import com.wgpdb.transportmanager.domain.WeatherData;
 import com.wgpdb.transportmanager.exception.WeatherDataNotFoundException;
 import com.wgpdb.transportmanager.repository.WeatherDataRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,7 +12,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class WeatherDataDbService {
 
-    @Autowired
     private final WeatherDataRepository weatherDataRepository;
 
     public WeatherData getWeatherData(final Long id) throws WeatherDataNotFoundException {

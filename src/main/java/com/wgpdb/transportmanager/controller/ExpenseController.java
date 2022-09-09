@@ -4,9 +4,11 @@ import com.wgpdb.transportmanager.domain.Expense;
 import com.wgpdb.transportmanager.domain.dto.ExpenseDto;
 import com.wgpdb.transportmanager.exception.ExpenseNotFoundException;
 import com.wgpdb.transportmanager.mapper.ExpenseMapper;
+import com.wgpdb.transportmanager.mapper.ExpensePageMapper;
 import com.wgpdb.transportmanager.service.dbservice.ExpenseDbService;
 import com.wgpdb.transportmanager.service.expense.ExpenseFacade;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +23,7 @@ public class ExpenseController {
 
     private final ExpenseDbService expenseDbService;
     private final ExpenseMapper expenseMapper;
+    private final ExpensePageMapper expensePageMapper;
     private final ExpenseFacade expenseFacade;
 
     @GetMapping(value = "{id}")
@@ -32,6 +35,16 @@ public class ExpenseController {
     public ResponseEntity<List<ExpenseDto>> getAllExpenses() {
         List<Expense> expenses = expenseDbService.getAllExpenses();
         return ResponseEntity.ok(expenseMapper.INSTANCE.mapToExpenseDtoList(expenses));
+    }
+
+    @GetMapping(value = "/p")
+    public ResponseEntity<Page<ExpenseDto>> getAllExpensesPagedSorted(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "expenseDate") String sortBy) {
+        Page<Expense> expenses = expenseDbService.getAllExpensesPagedSorted(page, size, sortBy);
+        Page<ExpenseDto> expensesDto = expensePageMapper.mapToExpenseDtoPage(expenses);
+        return ResponseEntity.ok(expensesDto);
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)

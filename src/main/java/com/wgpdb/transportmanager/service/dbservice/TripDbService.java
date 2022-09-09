@@ -5,7 +5,10 @@ import com.wgpdb.transportmanager.domain.enumerantion.TripStatus;
 import com.wgpdb.transportmanager.exception.TripNotFoundException;
 import com.wgpdb.transportmanager.repository.TripRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -15,7 +18,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TripDbService {
 
-    @Autowired
     private final TripRepository tripRepository;
 
     public Trip getTrip(final Long id) throws TripNotFoundException {
@@ -26,6 +28,11 @@ public class TripDbService {
         return tripRepository.findAll();
     }
 
+    public Page<Trip> getAllTripsPagedSorted(int page, int size, String sortBy) {
+        Pageable paging = PageRequest.of(page, size, Sort.by(sortBy).ascending());
+        return tripRepository.findAll(paging);
+    }
+
     public List<Trip> getByTripStatus(final TripStatus tripStatus) {
         return tripRepository.findByTripStatus(tripStatus);
     }
@@ -33,8 +40,6 @@ public class TripDbService {
     public List<Trip> getByTripStatusAndTripDate(final TripStatus tripStatus, final LocalDate tripDate) {
         return tripRepository.findByTripStatusAndTripDate(tripStatus, tripDate);
     }
-
-    //todo: pagination
 
     public Trip saveTrip(final Trip trip) {
         return tripRepository.save(trip);

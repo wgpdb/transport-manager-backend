@@ -4,7 +4,6 @@ import com.wgpdb.transportmanager.domain.TripRevenue;
 import com.wgpdb.transportmanager.exception.TripRevenueNotFoundException;
 import com.wgpdb.transportmanager.repository.TripRevenueRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,7 +12,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TripRevenueDbService {
 
-    @Autowired
     private TripRevenueRepository tripRevenueRepository;
 
     public TripRevenue getTripRevenue(final Long id) throws TripRevenueNotFoundException {
